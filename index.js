@@ -47,11 +47,20 @@ function run() {
 
     app.post("/addReview", async (req, res) => {
       const data = req.body;
-      console.log(data);
+      // console.log(data);
       const result = await reviewCollection.insertOne(data);
 
       res.send(result);
     });
+
+    app.get('/service/:id', async(req, res)=>{
+      console.log(req.params.id);
+      const id=req.params.id;
+      const query={serviceNo:id};
+      const result=await serviceCollection.findOne(query);
+      res.send(result)
+      
+    })
 
     app.get("/allServices", async (req, res) => {
       const query = {};
@@ -59,6 +68,10 @@ function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+
+    app.get('/serviceReview/:id', async(req, res)=>{
+      console.log(req.params.id);
+    })
   } catch (error) {
     console.log(error);
   }
