@@ -10,6 +10,45 @@ app.use(cors());
 app.use(express.json());
 
 
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const uri = `mongodb+srv://${process.env.DB_NAME}:${process.env.DB_PASSWORD}@cluster1.rvqsrsr.mongodb.net/?retryWrites=true&w=majority`;
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
+
+function run() {
+  try {
+    const serviceCollection = client
+      .db("services")
+      .collection("service-collection");
+    app.get("/services", async (req, res) => {
+      const query = {};
+      const cursor = serviceCollection.find(query);
+      const result = await cursor.limit(3).toArray();
+      res.send(result);
+    });
+
+    app.get('/serviceDetails/:id',async (req, res)=>{
+      const id=req.params.id;
+      const query={_id:ObjectId(id)};
+      const result=await serviceCollection.findOne(query);
+      res.send(result)
+    })
+
+    app.get("/allServices", async (req, res) => {
+      const query = {};
+      const cursor = serviceCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+run();
+
 app.get("/", (req, res) => {
   res.send("Sever is live now.");
 });
@@ -17,3 +56,4 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log("Server is running in port:", port);
 });
+
