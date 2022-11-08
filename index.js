@@ -62,6 +62,14 @@ function run() {
       res.send(result);
     });
 
+    app.get('/userReview', async(req, res)=>{
+      const userEmail=req.query?.email;
+      const query={userEmail:userEmail};
+      const cursor=reviewCollection.find(query);
+      const result=await cursor.toArray();
+      res.send(result);
+    })
+
     app.get("/allServices", async (req, res) => {
       const query = {};
       const cursor = serviceCollection.find(query);
