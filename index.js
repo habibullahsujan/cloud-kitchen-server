@@ -47,20 +47,20 @@ function run() {
 
     app.post("/addReview", async (req, res) => {
       const data = req.body;
-      // console.log(data);
+
       const result = await reviewCollection.insertOne(data);
 
       res.send(result);
     });
 
-    app.get('/service/:id', async(req, res)=>{
-      console.log(req.params.id);
-      const id=req.params.id;
-      const query={serviceNo:id};
-      const result=await serviceCollection.findOne(query);
-      res.send(result)
-      
-    })
+    app.get("/service/:id", async (req, res) => {
+      const id = parseInt(req.params.id);
+
+      const query = { serviceNo: id };
+      const result = await serviceCollection.findOne(query);
+
+      res.send(result);
+    });
 
     app.get("/allServices", async (req, res) => {
       const query = {};
@@ -69,9 +69,13 @@ function run() {
       res.send(result);
     });
 
-    app.get('/serviceReview/:id', async(req, res)=>{
-      console.log(req.params.id);
-    })
+    app.get("/serviceReview/:id", async (req, res) => {
+      const id = parseInt(req.params.id);
+      const query={serviceNo:id};
+      const cursor=reviewCollection.find(query);
+      const result=await cursor.toArray();
+      res.send(result)
+    });
   } catch (error) {
     console.log(error);
   }
