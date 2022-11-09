@@ -17,6 +17,23 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+function verifyJWT(req, res, next) {
+  const userAuth = req.headers.authorization;
+
+  if (!userAuth) {
+    return res.status(403).send({ message: "unauthorized access." });
+  }
+  const token = userAuth.split(" ")[1];
+
+  jwt.verify(token, process.env.JWT_SECRET, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "unauthorized access." });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 function run() {
   try {
     const serviceCollection = client
@@ -57,10 +74,30 @@ function run() {
       const result = await serviceCollection.findOne(query);
       res.send(result);
     });
+    
+    app.post('/jwt', (req,res)=>{
+      const email=req.body;
+      console.log(email);
+      const token=jwt.sign(email,process.env.JWT_SECRET,{expiresIn:'1d'});
+      res.send({token})
+    });
 
-    app.get("/userReview", async (req, res) => {
+
+    app.get("/userReview", verifyJWT, async (req, res) => {
       const userEmail = req.query?.email;
-      const query = { userEmail: userEmail };
+      const usrVerify = req.decoded;
+
+      if (usrVerify.email !== req.query.email) {
+        return res.status(403).send({ message: "unauthorized access" });
+      }
+
+      let query = {};
+      if (req.query.email) {
+        query = {
+          userEmail: userEmail,
+        };
+      }
+
       const cursor = reviewCollection.find(query).sort({ reviewTime: -1 });
       const result = await cursor.toArray();
       res.send(result);
@@ -98,8 +135,6 @@ function run() {
     app.put("/editReview/:id", async (req, res) => {
       const id = req.params.id;
       const document = req.body;
-
-
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
       const updateDoc = {
@@ -108,7 +143,17 @@ function run() {
           userRating: parseInt(document?.updatedRating),
         },
       };
-      const result = await reviewCollection.updateOne(filter, updateDoc, options);
+      const result = await reviewCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
+    app.post("/addReview", async (req, res) => {
+      const data = req.body;
+      const result = await serviceCollection.insertOne(data);
       res.send(result);
     });
   } catch (error) {
