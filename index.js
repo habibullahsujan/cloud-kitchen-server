@@ -47,28 +47,24 @@ function run() {
 
     app.post("/addReview", async (req, res) => {
       const data = req.body;
-
       const result = await reviewCollection.insertOne(data);
-
       res.send(result);
     });
 
     app.get("/service/:id", async (req, res) => {
       const id = parseInt(req.params.id);
-
       const query = { serviceNo: id };
       const result = await serviceCollection.findOne(query);
-
       res.send(result);
     });
 
-    app.get('/userReview', async(req, res)=>{
-      const userEmail=req.query?.email;
-      const query={userEmail:userEmail};
-      const cursor=reviewCollection.find(query).sort({reviewTime: -1});
-      const result=await cursor.toArray();
+    app.get("/userReview", async (req, res) => {
+      const userEmail = req.query?.email;
+      const query = { userEmail: userEmail };
+      const cursor = reviewCollection.find(query).sort({ reviewTime: -1 });
+      const result = await cursor.toArray();
       res.send(result);
-    })
+    });
 
     app.get("/allServices", async (req, res) => {
       const query = {};
@@ -79,18 +75,42 @@ function run() {
 
     app.get("/serviceReview/:id", async (req, res) => {
       const id = parseInt(req.params.id);
-      const query={serviceNo:id};
-      const cursor=reviewCollection.find(query);
-      const result=await cursor.toArray();
-      res.send(result)
+      const query = { serviceNo: id };
+      const cursor = reviewCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
     });
 
-    app.delete('/deleteReview/:id', async(req, res)=>{
-      const id=req.params.id;
-      const query={_id:ObjectId(id)};
-      const result=await reviewCollection.deleteOne(query);
-      res.send(result)
-    })
+    app.delete("/deleteReview/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await reviewCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.get("/review/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await reviewCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.put("/editReview/:id", async (req, res) => {
+      const id = req.params.id;
+      const document = req.body;
+
+
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          userReview: document?.comment,
+          userRating: parseInt(document?.updatedRating),
+        },
+      };
+      const result = await reviewCollection.updateOne(filter, updateDoc, options);
+      res.send(result);
+    });
   } catch (error) {
     console.log(error);
   }
