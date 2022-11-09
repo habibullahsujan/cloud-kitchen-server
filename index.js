@@ -65,7 +65,7 @@ function run() {
     app.get('/userReview', async(req, res)=>{
       const userEmail=req.query?.email;
       const query={userEmail:userEmail};
-      const cursor=reviewCollection.find(query);
+      const cursor=reviewCollection.find(query).sort({reviewTime: -1});
       const result=await cursor.toArray();
       res.send(result);
     })
