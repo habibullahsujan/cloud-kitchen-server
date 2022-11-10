@@ -82,7 +82,7 @@ function run() {
 
     app.post("/jwt", (req, res) => {
       const email = req.body;
-      console.log(email);
+   
       const token = jwt.sign(email, process.env.JWT_SECRET, {
         expiresIn: "1d",
       });
