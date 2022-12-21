@@ -45,7 +45,8 @@ function run() {
 
     const reviewCollection = client.db("services").collection("reviews");
     const paymentsCollection=client.db('services').collection('payments');
-    const ordersCollection=client.db('services').collection('orders')
+    const ordersCollection=client.db('services').collection('orders');
+    const userCollection=client.db('services').collection('users');
     app.get("/services", async (req, res) => {
       const query = {};
       const cursor = serviceCollection.find(query);
@@ -205,8 +206,42 @@ function run() {
       res.send(result)
     } );
 
-    app.put('/set_like_db', async(req, res)=>{
+    app.post('/signupUser',async (req,res)=>{
+      const data=req.body;
+      const result=await userCollection.insertOne(data);
+      res.send(result)
+    })
+    //get user info
+    app.get('/signupUser', async(req, res)=>{
+      const email=req.query.email
       
+      const query={
+        user_email:email
+      };
+      const result=await userCollection.findOne(query);
+      res.send(result)
+    });
+
+
+    app.put('/signupUser', async(req, res)=>{
+      const email=req.query.email;
+      const document = req.body;
+      const filter = {user_email:email};
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          liked:{
+            isLiked:true,
+            productInfo:document,
+          }
+        },
+      };
+      const result = await userCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
     })
 
     // const verifyAdminRole=(req, res, next)=>{
